@@ -219,16 +219,16 @@ readpw(Display *dpy, Keyboard *kb, const char *pws)
     len = llen = 0;
     running = True;
 
+    kb_load_layout(dpy, kb);
+    for(screen = 0; screen < nscreens; screen++) {
+        XDrawString(dpy, locks[screen]->win, XCreateGC(dpy, locks[screen]->win, GCForeground, &locks[screen]->gr_values), 30, 30, kb->layout, strlen(kb->layout));
+    }
+
     /* As "slock" stands for "Simple X display locker", the DPMS settings
      * had been removed and you can set it with "xset" or some other
      * utility. This way the user can easily set a customized DPMS
      * timeout. */
     while(running && !XNextEvent(dpy, &ev)) {
-        kb_load_layout(dpy, kb);
-        for(screen = 0; screen < nscreens; screen++) {
-            XDrawString(dpy, locks[screen]->win, XCreateGC(dpy, locks[screen]->win, GCForeground, &locks[screen]->gr_values), 30, 30, kb->layout, strlen(kb->layout));
-        }
-
         if(ev.type == KeyPress) {
             buf[0] = 0;
             num = XLookupString(&ev.xkey, buf, sizeof buf, &ksym, 0);
@@ -278,16 +278,16 @@ readpw(Display *dpy, Keyboard *kb, const char *pws)
                 }
             }
             llen = len;
+
+            kb_load_layout(dpy, kb);
+            for(screen = 0; screen < nscreens; screen++) {
+                XClearWindow(dpy, locks[screen]->win);
+                XDrawString(dpy, locks[screen]->win, XCreateGC(dpy, locks[screen]->win, GCForeground, &locks[screen]->gr_values), 30, 30, kb->layout, strlen(kb->layout));
+            }
         } else {
             for(screen = 0; screen < nscreens; screen++) {
                 XRaiseWindow(dpy, locks[screen]->win);
             }
-        }
-        
-        kb_load_layout(dpy, kb);
-        for(screen = 0; screen < nscreens; screen++) {
-            XClearWindow(dpy, locks[screen]->win);
-            XDrawString(dpy, locks[screen]->win, XCreateGC(dpy, locks[screen]->win, GCForeground, &locks[screen]->gr_values), 30, 30, kb->layout, strlen(kb->layout));
         }
     }
 }
